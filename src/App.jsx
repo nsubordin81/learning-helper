@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './App.css'
 
 // Main App Component
 const LearningAssistant = () => {
@@ -403,7 +404,7 @@ const LearningAssistant = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Your Portfolio Projects</h2>
             <button 
-              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              className="bg-blue-100 text-white px-3 py-1 rounded hover:bg-blue-700"
               onClick={() => setAddingProject(true)}
             >
               Add Project

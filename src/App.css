@@ -1,8 +1,12 @@
+@import "tailwindcss";
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  background-color: #98ceb7; /* Dark background */
+  color: #404040; /* Light text color */
 }
 
 .logo {
@@ -12,10 +16,10 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #ff00ff); /* Neon pink */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em #00ffff); /* Neon cyan */
 }
 
 @keyframes logo-spin {
@@ -35,8 +39,11 @@
 
 .card {
   padding: 2em;
+  background-color: #989898; /* Slightly lighter dark background */
+  color: #e0e0e0; /* Light text color */
+  border: 1px solid #ff00ff; /* Neon pink border */
 }
 
 .read-the-docs {
-  color: #888;
+  color: #00ffff; /* Neon cyan */
 }
