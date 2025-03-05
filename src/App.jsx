@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './App.css'
+import './App.css';
 
 // Main App Component
 const LearningAssistant = () => {
@@ -46,6 +46,15 @@ const LearningAssistant = () => {
   const [newProjectName, setNewProjectName] = useState('');
   const [addingProject, setAddingProject] = useState(false);
   const [addingComponent, setAddingComponent] = useState(false);
+  const [activeLearningTechnique, setActiveLearningTechnique] = useState(null);
+  const [quizzes, setQuizzes] = useState([]);
+  const [currentQuiz, setCurrentQuiz] = useState(null);
+  const [newQuizQuestion, setNewQuizQuestion] = useState('');
+  const [newQuizAnswer, setNewQuizAnswer] = useState('');
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [userReflection, setUserReflection] = useState('');
+  const [elaborations, setElaborations] = useState([]);
+  const [newElaboration, setNewElaboration] = useState('');
 
   // Get all components with time less than or equal to specified minutes
   const getQuickComponents = (maxTime) => {
@@ -343,8 +352,476 @@ const LearningAssistant = () => {
           >
             Mixed Study
           </button>
+          <button 
+            className={`py-2 font-medium ${activeTab === 'techniques' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setActiveTab('techniques')}
+          >
+            Learning Tools
+          </button>
         </div>
       </div>
+      
+      {/* Learning techniques and methods */}
+      {activeTab === 'techniques' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Active Learning Techniques</h2>
+            <div className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">Based on Make it Stick</div>
+          </div>
+
+          {/* Techniques tabs */}
+          <div className="bg-white rounded-lg shadow overflow-hidden mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 border-b">
+              {['Retrieval', 'Elaboration', 'Reflection', 'Interleaving'].map(technique => (
+                <button 
+                  key={technique}
+                  className={`py-3 px-2 text-sm font-medium ${activeLearningTechnique === technique ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                  onClick={() => setActiveLearningTechnique(technique)}
+                >
+                  {technique}
+                </button>
+              ))}
+            </div>
+            
+            {/* Technique content */}
+            <div className="p-4">
+              {activeLearningTechnique === 'Retrieval' && (
+                <div>
+                  <div className="mb-4">
+                    <h3 className="font-medium mb-2">Self-Quizzing</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Create questions about the material you're learning. Testing yourself strengthens neural pathways and interrupts forgetting. 
+                    </p>
+                    
+                    <div className="border rounded-lg p-4 bg-gray-50 mb-4">
+                      <h4 className="text-sm font-medium mb-2">Create New Quiz Question</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Question</label>
+                          <input 
+                            type="text" 
+                            className="w-full border rounded p-2 text-sm" 
+                            placeholder="What is event sourcing?"
+                            value={newQuizQuestion}
+                            onChange={e => setNewQuizQuestion(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Answer</label>
+                          <textarea 
+                            className="w-full border rounded p-2 text-sm" 
+                            placeholder="Event sourcing is a pattern where..."
+                            rows="2"
+                            value={newQuizAnswer}
+                            onChange={e => setNewQuizAnswer(e.target.value)}
+                          ></textarea>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Related Project Component</label>
+                          <select className="w-full border rounded p-2 text-sm">
+                            <option value="">-- Select component --</option>
+                            {projects.map(project => (
+                              project.components.map(component => (
+                                <option key={`${project.id}-${component.id}`} value={`${project.id}-${component.id}`}>
+                                  {project.name}: {component.name}
+                                </option>
+                              ))
+                            ))}
+                          </select>
+                        </div>
+                        <button 
+                          className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+                          onClick={() => {
+                            if (newQuizQuestion && newQuizAnswer) {
+                              setQuizzes([
+                                ...quizzes, 
+                                {
+                                  id: quizzes.length + 1,
+                                  question: newQuizQuestion,
+                                  answer: newQuizAnswer,
+                                  lastPracticed: null,
+                                  timesCorrect: 0,
+                                  timesAttempted: 0
+                                }
+                              ]);
+                              setNewQuizQuestion('');
+                              setNewQuizAnswer('');
+                            }
+                          }}
+                        >
+                          Save Question
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Practice section */}
+                    {quizzes.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Practice Retrieval</h4>
+                        {currentQuiz ? (
+                          <div className="border rounded-lg p-4">
+                            <p className="font-medium mb-4">{currentQuiz.question}</p>
+                            <div className="mb-3">
+                              <button
+                                className="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 mr-2"
+                                onClick={() => setShowAnswer(!showAnswer)}
+                              >
+                                {showAnswer ? 'Hide Answer' : 'Show Answer'}
+                              </button>
+                              <button
+                                className="bg-gray-200 text-gray-800 px-3 py-2 rounded text-sm hover:bg-gray-300"
+                                onClick={() => {
+                                  setCurrentQuiz(null);
+                                  setShowAnswer(false);
+                                }}
+                              >
+                                Next Question
+                              </button>
+                            </div>
+                            {showAnswer && (
+                              <div className="bg-blue-50 p-3 rounded">
+                                <p className="text-sm">{currentQuiz.answer}</p>
+                                <div className="mt-3 flex space-x-2">
+                                  <button 
+                                    className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs"
+                                    onClick={() => {
+                                      setQuizzes(quizzes.map(q => 
+                                        q.id === currentQuiz.id ? 
+                                        {...q, lastPracticed: new Date().toISOString(), timesCorrect: q.timesCorrect + 1, timesAttempted: q.timesAttempted + 1} : q
+                                      ));
+                                      setCurrentQuiz(null);
+                                      setShowAnswer(false);
+                                    }}
+                                  >
+                                    Got it Right
+                                  </button>
+                                  <button 
+                                    className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs"
+                                    onClick={() => {
+                                      setQuizzes(quizzes.map(q => 
+                                        q.id === currentQuiz.id ? 
+                                        {...q, lastPracticed: new Date().toISOString(), timesAttempted: q.timesAttempted + 1} : q
+                                      ));
+                                      setCurrentQuiz(null);
+                                      setShowAnswer(false);
+                                    }}
+                                  >
+                                    Need More Practice
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <button 
+                            className="bg-orange-100 text-orange-800 px-3 py-2 rounded text-sm hover:bg-orange-200"
+                            onClick={() => {
+                              const randomIndex = Math.floor(Math.random() * quizzes.length);
+                              setCurrentQuiz(quizzes[randomIndex]);
+                            }}
+                          >
+                            Start Quiz Session
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Quiz list */}
+                    {quizzes.length > 0 && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium mb-2">Your Questions ({quizzes.length})</h4>
+                        <div className="border rounded overflow-hidden">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Question</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Last Practice</th>
+                                <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Success Rate</th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {quizzes.map(quiz => (
+                                <tr key={quiz.id}>
+                                  <td className="px-3 py-2 text-sm">{quiz.question}</td>
+                                  <td className="px-3 py-2 text-sm text-gray-500">
+                                    {quiz.lastPracticed ? formatDate(quiz.lastPracticed) : 'Not practiced'}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm">
+                                    {quiz.timesAttempted > 0 
+                                      ? `${Math.round((quiz.timesCorrect / quiz.timesAttempted) * 100)}%` 
+                                      : '-'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {activeLearningTechnique === 'Elaboration' && (
+                <div>
+                  <h3 className="font-medium mb-2">Elaboration</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Connect new material to what you already know. Explain concepts in your own words and relate them to your existing knowledge.
+                  </p>
+                  
+                  <div className="border rounded-lg p-4 bg-gray-50 mb-4">
+                    <h4 className="text-sm font-medium mb-2">Create New Elaboration</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Select Component</label>
+                        <select className="w-full border rounded p-2 text-sm">
+                          <option value="">-- Select component --</option>
+                          {projects.map(project => (
+                            project.components.map(component => (
+                              <option key={`${project.id}-${component.id}`} value={`${project.id}-${component.id}`}>
+                                {project.name}: {component.name}
+                              </option>
+                            ))
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">How does this connect to what you already know?</label>
+                        <textarea 
+                          className="w-full border rounded p-2 text-sm" 
+                          placeholder="This concept reminds me of..."
+                          rows="3"
+                          value={newElaboration}
+                          onChange={e => setNewElaboration(e.target.value)}
+                        ></textarea>
+                      </div>
+                      <button 
+                        className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+                        onClick={() => {
+                          if (newElaboration) {
+                            setElaborations([
+                              ...elaborations, 
+                              {
+                                id: elaborations.length + 1,
+                                text: newElaboration,
+                                date: new Date().toISOString()
+                              }
+                            ]);
+                            setNewElaboration('');
+                          }
+                        }}
+                      >
+                        Save Elaboration
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Elaborations list */}
+                  {elaborations.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Your Elaborations</h4>
+                      <div className="space-y-3">
+                        {elaborations.map(item => (
+                          <div key={item.id} className="border rounded p-3">
+                            <p className="text-sm mb-1">{item.text}</p>
+                            <p className="text-xs text-gray-500">{formatDate(item.date)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {activeLearningTechnique === 'Reflection' && (
+                <div>
+                  <h3 className="font-medium mb-2">Reflection Journal</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Take a few minutes to review what you've learned and ask yourself questions about it. This combines retrieval practice and elaboration.
+                  </p>
+                  
+                  <div className="border rounded-lg p-4 mb-4">
+                    <h4 className="text-sm font-medium mb-3">Today's Reflection</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">What did you learn today?</label>
+                        <textarea 
+                          className="w-full border rounded p-2 text-sm" 
+                          rows="3"
+                          value={userReflection}
+                          onChange={e => setUserReflection(e.target.value)}
+                        ></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">How does it connect to what you already know?</label>
+                        <textarea className="w-full border rounded p-2 text-sm" rows="2"></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">What questions do you still have?</label>
+                        <textarea className="w-full border rounded p-2 text-sm" rows="2"></textarea>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">How might you apply this in the future?</label>
+                        <textarea className="w-full border rounded p-2 text-sm" rows="2"></textarea>
+                      </div>
+                      <button className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                        Save Reflection
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                    <h4 className="text-sm font-medium text-yellow-800 mb-1">Reflection Tips</h4>
+                    <ul className="text-xs text-yellow-800 space-y-1 list-disc pl-4">
+                      <li>Set aside 5-10 minutes at the end of each study session for reflection</li>
+                      <li>Ask yourself what was most important or surprising about what you learned</li>
+                      <li>Try to explain complex concepts in simple terms, as if teaching someone else</li>
+                      <li>Connect new material to real-world applications in your projects</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+              
+              {activeLearningTechnique === 'Interleaving' && (
+                <div>
+                  <h3 className="font-medium mb-2">Interleaved Practice Scheduler</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Mix up different topics or problem types during practice instead of focusing on one area at a time. This improves discrimination and identification abilities.
+                  </p>
+                  
+                  <div className="bg-white border rounded-lg p-4 mb-4">
+                    <h4 className="text-sm font-medium mb-3">Generated Practice Session</h4>
+                    
+                    <div className="space-y-4">
+                      {projects.slice(0, 3).map((project, index) => {
+                        const component = project.components[Math.floor(Math.random() * project.components.length)];
+                        return (
+                          <div key={project.id} className="border-l-2 border-indigo-500 pl-3">
+                            <div className="font-medium text-sm">
+                              Session {index + 1}: {project.name} - {component?.name || 'No component available'}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-1">
+                              Spend 10-15 minutes on this component.
+                            </div>
+                            <button 
+                              className="mt-2 text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded hover:bg-indigo-200"
+                              onClick={() => component && completeComponent(project.id, component.id)}
+                            >
+                              Mark Complete
+                            </button>
+                          </div>
+                        );
+                      })}
+                      
+                      <div className="mt-4 text-sm text-gray-700 bg-gray-50 p-3 rounded">
+                        <strong>Why this works:</strong> Interleaving forces your brain to continually retrieve different 
+                        types of information, which strengthens memory and helps you see connections between different topics.
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white border rounded-lg p-4">
+                    <h4 className="text-sm font-medium mb-2">Custom Interleaving Schedule</h4>
+                    <p className="text-xs text-gray-600 mb-3">
+                      Select 2-4 components to practice in sequence. Spend 10-15 minutes on each, then switch.
+                    </p>
+                    
+                    <div className="space-y-2">
+                      {[1, 2, 3].map(num => (
+                        <div key={num} className="flex items-center">
+                          <span className="text-xs font-medium w-6">{num}.</span>
+                          <select className="flex-grow border rounded p-1 text-sm">
+                            <option value="">-- Select component --</option>
+                            {projects.map(project => (
+                              project.components.map(component => (
+                                <option key={`${project.id}-${component.id}`} value={`${project.id}-${component.id}`}>
+                                  {project.name}: {component.name}
+                                </option>
+                              ))
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                      
+                      <button className="mt-2 bg-indigo-600 text-white px-3 py-2 rounded text-sm hover:bg-indigo-700">
+                        Create Custom Session
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {!activeLearningTechnique && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Select a learning technique to get started</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Learning techniques reference */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <h3 className="font-medium mb-3">Learning Techniques Guide</h3>
+            <div className="space-y-4">
+              <div className="border-b pb-3">
+                <h4 className="text-sm font-medium text-blue-800 mb-1">Retrieval Practice</h4>
+                <p className="text-xs text-gray-600">
+                  Practice retrieving newly learned material from memory through self-quizzing. 
+                  This strengthens neural pathways and interrupts forgetting.
+                </p>
+              </div>
+              
+              <div className="border-b pb-3">
+                <h4 className="text-sm font-medium text-green-800 mb-1">Spaced Practice</h4>
+                <p className="text-xs text-gray-600">
+                  Leave time between practice sessions. This prevents forgetting and strengthens learning, 
+                  even though it feels more difficult than cramming.
+                </p>
+              </div>
+              
+              <div className="border-b pb-3">
+                <h4 className="text-sm font-medium text-purple-800 mb-1">Interleaved Practice</h4>
+                <p className="text-xs text-gray-600">
+                  Mix up different types of problems or topics instead of focusing on one area at a time. 
+                  This improves discrimination and long-term retention.
+                </p>
+              </div>
+              
+              <div className="border-b pb-3">
+                <h4 className="text-sm font-medium text-yellow-800 mb-1">Elaboration</h4>
+                <p className="text-xs text-gray-600">
+                  Find additional layers of meaning by relating material to what you already know or 
+                  explaining it to others in your own words.
+                </p>
+              </div>
+              
+              <div className="border-b pb-3">
+                <h4 className="text-sm font-medium text-red-800 mb-1">Generation</h4>
+                <p className="text-xs text-gray-600">
+                  Attempt to solve a problem before being shown the solution. This makes your mind 
+                  more receptive to learning.
+                </p>
+              </div>
+              
+              <div className="border-b pb-3">
+                <h4 className="text-sm font-medium text-indigo-800 mb-1">Reflection</h4>
+                <p className="text-xs text-gray-600">
+                  Take a few minutes to review what you've learned and ask yourself questions about it. 
+                  This combines retrieval practice and elaboration.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-800 mb-1">Calibration</h4>
+                <p className="text-xs text-gray-600">
+                  Use quizzes or tests to objectively measure your knowledge, clearing away 
+                  illusions about what you know or don't know.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Tab content */}
       {activeTab === 'dashboard' && (
@@ -404,7 +881,7 @@ const LearningAssistant = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Your Portfolio Projects</h2>
             <button 
-              className="bg-blue-100 text-white px-3 py-1 rounded hover:bg-blue-700"
+              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
               onClick={() => setAddingProject(true)}
             >
               Add Project
