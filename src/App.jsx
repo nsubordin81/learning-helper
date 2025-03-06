@@ -1,44 +1,52 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
 // Main App Component
 const LearningAssistant = () => {
+
+
   // State for projects and learning components
-  const [projects, setProjects] = useState([
-    { 
-      id: 1, 
-      name: 'Game Analytics Platform', 
-      description: 'Game mechanics data analytics platform with multiple Kafka sources',
-      components: [
-        { id: 1, name: 'Setting up Kafka consumers in Node.js', completed: false, lastStudied: null, time: 5 },
-        { id: 2, name: 'Building real-time data pipelines', completed: false, lastStudied: null, time: 10 },
-        { id: 3, name: 'React dashboard component architecture', completed: false, lastStudied: null, time: 5 },
-        { id: 4, name: 'Data visualization with D3 integration', completed: false, lastStudied: null, time: 15 },
-      ]
-    },
-    { 
-      id: 2, 
-      name: 'Productivity RPG', 
-      description: 'React Three Fiber project with event-sourced backend that gamifies productivity',
-      components: [
-        { id: 1, name: 'R3F scene setup & character models', completed: false, lastStudied: null, time: 10 },
-        { id: 2, name: 'Event sourcing architecture fundamentals', completed: false, lastStudied: null, time: 15 },
-        { id: 3, name: 'RPG stat system & progression logic', completed: false, lastStudied: null, time: 10 },
-        { id: 4, name: 'Task completion & reward mechanics', completed: false, lastStudied: null, time: 5 },
-      ]
-    },
-    { 
-      id: 3, 
-      name: 'Spaceship Portfolio', 
-      description: 'Interactive personal website in React Three Fiber featuring a spaceship experience',
-      components: [
-        { id: 1, name: 'Spaceship interior modeling', completed: false, lastStudied: null, time: 15 },
-        { id: 2, name: 'First-person camera controls', completed: false, lastStudied: null, time: 10 },
-        { id: 3, name: 'Portal effects & shader basics', completed: false, lastStudied: null, time: 15 },
-        { id: 4, name: 'Interactive objects & highlighting', completed: false, lastStudied: null, time: 5 },
-      ]
+  const [projects, setProjects] = useState( () => {
+    const savedProjects = localStorage.getItem('projects');
+    if (savedProjects) {
+      return JSON.parse(savedProjects)
     }
-  ]);
+    return [
+      { 
+        id: 1, 
+        name: 'Game Analytics Platform', 
+        description: 'Game mechanics data analytics platform with multiple Kafka sources',
+        components: [
+          { id: 1, name: 'Setting up Kafka consumers in Node.js', completed: false, lastStudied: null, time: 5 },
+          { id: 2, name: 'Building real-time data pipelines', completed: false, lastStudied: null, time: 10 },
+          { id: 3, name: 'React dashboard component architecture', completed: false, lastStudied: null, time: 5 },
+          { id: 4, name: 'Data visualization with D3 integration', completed: false, lastStudied: null, time: 15 },
+        ]
+      },
+      { 
+        id: 2, 
+        name: 'Productivity RPG', 
+        description: 'React Three Fiber project with event-sourced backend that gamifies productivity',
+        components: [
+          { id: 1, name: 'R3F scene setup & character models', completed: false, lastStudied: null, time: 10 },
+          { id: 2, name: 'Event sourcing architecture fundamentals', completed: false, lastStudied: null, time: 15 },
+          { id: 3, name: 'RPG stat system & progression logic', completed: false, lastStudied: null, time: 10 },
+          { id: 4, name: 'Task completion & reward mechanics', completed: false, lastStudied: null, time: 5 },
+        ]
+      },
+      { 
+        id: 3, 
+        name: 'Spaceship Portfolio', 
+        description: 'Interactive personal website in React Three Fiber featuring a spaceship experience',
+        components: [
+          { id: 1, name: 'Spaceship interior modeling', completed: false, lastStudied: null, time: 15 },
+          { id: 2, name: 'First-person camera controls', completed: false, lastStudied: null, time: 10 },
+          { id: 3, name: 'Portal effects & shader basics', completed: false, lastStudied: null, time: 15 },
+          { id: 4, name: 'Interactive objects & highlighting', completed: false, lastStudied: null, time: 5 },
+        ]
+      }
+  ]
+});
   
   const [activeTab, setActiveTab] = useState('dashboard');
   const [activeProject, setActiveProject] = useState(null);
@@ -47,14 +55,82 @@ const LearningAssistant = () => {
   const [addingProject, setAddingProject] = useState(false);
   const [addingComponent, setAddingComponent] = useState(false);
   const [activeLearningTechnique, setActiveLearningTechnique] = useState(null);
-  const [quizzes, setQuizzes] = useState([]);
+  const [quizzes, setQuizzes] = useState(() => {
+    const savedQuizzes = localStorage.getItem('quizzes');
+    return savedQuizzes ? JSON.parse(savedQuizzes) : [];
+  });
   const [currentQuiz, setCurrentQuiz] = useState(null);
   const [newQuizQuestion, setNewQuizQuestion] = useState('');
   const [newQuizAnswer, setNewQuizAnswer] = useState('');
   const [showAnswer, setShowAnswer] = useState(false);
-  const [userReflection, setUserReflection] = useState('');
-  const [elaborations, setElaborations] = useState([]);
+  const [elaborations, setElaborations] = useState(() => {
+    const savedElaborations = localStorage.getItem('elaborations');
+    return savedElaborations ? JSON.parse(savedElaborations) : [];
+  });
   const [newElaboration, setNewElaboration] = useState('');
+
+  // Update the reflection state
+  const [reflections, setReflections] = useState(() => {
+    const savedReflections = localStorage.getItem('reflections');
+    return savedReflections ? JSON.parse(savedReflections) : [];
+  });
+
+  const [currentReflection, setCurrentReflection] = useState({
+    content: '',
+    connections: '',
+    questions: '',
+    applications: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  useEffect(() => {
+    const savedProjects = localStorage.getItem('projects');
+    if (savedProjects) {
+      setProjects(JSON.parse(savedProjects));  
+    }
+  }, []);
+
+  useEffect(() => {
+    const savedQuizzes = localStorage.getItem('quizzes');
+    setQuizzes(JSON.parse(savedQuizzes));
+  }, []); 
+
+  useEffect(() => {
+    localStorage.setItem('projects', JSON.stringify(projects));
+  }, [projects]);
+
+  useEffect(() => {
+    localStorage.setItem('quizzes', JSON.stringify(quizzes));
+  }, [quizzes]);
+
+  useEffect(() => {
+    localStorage.setItem('reflections', JSON.stringify(reflections));
+  }, [reflections]);
+
+  const handleReflectionChange = (field, value) => {
+    setCurrentReflection(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const saveReflection = () => {
+    if (currentReflection.content.trim()) {
+      setReflections(prev => [{
+        ...currentReflection,
+        id: Date.now(),
+        date: new Date().toISOString()
+      }, ...prev]);
+      
+      setCurrentReflection({
+        content: '',
+        connections: '',
+        questions: '',
+        applications: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+    }
+  };
 
   // Get all components with time less than or equal to specified minutes
   const getQuickComponents = (maxTime) => {
@@ -106,7 +182,7 @@ const LearningAssistant = () => {
     if (newProjectName.trim() === '') return;
     
     const newProject = {
-      id: projects.length + 1,
+      id: Date.now(),
       name: newProjectName,
       description: 'New project',
       components: []
@@ -637,9 +713,10 @@ const LearningAssistant = () => {
                 <div>
                   <h3 className="font-medium mb-2">Reflection Journal</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    Take a few minutes to review what you've learned and ask yourself questions about it. This combines retrieval practice and elaboration.
+                    Take a few minutes to review what you've learned and ask yourself questions about it.
                   </p>
                   
+                  {/* Today's Reflection Form */}
                   <div className="border rounded-lg p-4 mb-4">
                     <h4 className="text-sm font-medium mb-3">Today's Reflection</h4>
                     <div className="space-y-3">
@@ -648,37 +725,82 @@ const LearningAssistant = () => {
                         <textarea 
                           className="w-full border rounded p-2 text-sm" 
                           rows="3"
-                          value={userReflection}
-                          onChange={e => setUserReflection(e.target.value)}
+                          value={currentReflection.content}
+                          onChange={e => handleReflectionChange('content', e.target.value)}
                         ></textarea>
                       </div>
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">How does it connect to what you already know?</label>
-                        <textarea className="w-full border rounded p-2 text-sm" rows="2"></textarea>
+                        <textarea 
+                          className="w-full border rounded p-2 text-sm" 
+                          rows="2"
+                          value={currentReflection.connections}
+                          onChange={e => handleReflectionChange('connections', e.target.value)}
+                        ></textarea>
                       </div>
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">What questions do you still have?</label>
-                        <textarea className="w-full border rounded p-2 text-sm" rows="2"></textarea>
+                        <textarea 
+                          className="w-full border rounded p-2 text-sm" 
+                          rows="2"
+                          value={currentReflection.questions}
+                          onChange={e => handleReflectionChange('questions', e.target.value)}
+                        ></textarea>
                       </div>
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">How might you apply this in the future?</label>
-                        <textarea className="w-full border rounded p-2 text-sm" rows="2"></textarea>
+                        <textarea 
+                          className="w-full border rounded p-2 text-sm" 
+                          rows="2"
+                          value={currentReflection.applications}
+                          onChange={e => handleReflectionChange('applications', e.target.value)}
+                        ></textarea>
                       </div>
-                      <button className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700">
+                      <button 
+                        className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+                        onClick={saveReflection}
+                      >
                         Save Reflection
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <h4 className="text-sm font-medium text-yellow-800 mb-1">Reflection Tips</h4>
-                    <ul className="text-xs text-yellow-800 space-y-1 list-disc pl-4">
-                      <li>Set aside 5-10 minutes at the end of each study session for reflection</li>
-                      <li>Ask yourself what was most important or surprising about what you learned</li>
-                      <li>Try to explain complex concepts in simple terms, as if teaching someone else</li>
-                      <li>Connect new material to real-world applications in your projects</li>
-                    </ul>
-                  </div>
+
+                  {/* Reflection History */}
+                  {reflections.length > 0 && (
+                    <div className="border rounded-lg p-4">
+                      <h4 className="text-sm font-medium mb-3">Previous Reflections</h4>
+                      <div className="space-y-4">
+                        {reflections.map(reflection => (
+                          <div key={reflection.id} className="border-l-2 border-blue-500 pl-3">
+                            <div className="text-xs text-gray-500 mb-1">
+                              {new Date(reflection.date).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </div>
+                            <div className="text-sm mb-2">{reflection.content}</div>
+                            {reflection.connections && (
+                              <div className="text-xs text-gray-600 mb-1">
+                                <span className="font-medium">Connections:</span> {reflection.connections}
+                              </div>
+                            )}
+                            {reflection.questions && (
+                              <div className="text-xs text-gray-600 mb-1">
+                                <span className="font-medium">Questions:</span> {reflection.questions}
+                              </div>
+                            )}
+                            {reflection.applications && (
+                              <div className="text-xs text-gray-600">
+                                <span className="font-medium">Applications:</span> {reflection.applications}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               
