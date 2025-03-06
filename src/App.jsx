@@ -1,8 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
 // Main App Component
 const LearningAssistant = () => {
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await projectService.getProjects();
+        setProjects(projectData);
+
+        const quizzesData = await quizService.getQuizzes();
+        setQuizzes(quizzesData);
+
+        const reflectionsData = await reflectionService.getReflections();
+        setReflections(reflectionsData);
+
+        const elaborationsData = await elaborationService.getElaborations();
+        setElaborations(elaborationsData);
+
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }});
+
   // State for projects and learning components
   const [projects, setProjects] = useState([
     { 
